@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import json
 import os
 from typing import Any, Dict, Optional
 
@@ -142,7 +143,19 @@ def _mentioned_bot(payload: Dict[str, Any]) -> bool:
 
     bot_open_id = os.getenv("FEISHU_BOT_OPEN_ID")
     if not mentions:
-        return False
+        content = message.get("content") if isinstance(message, dict) else None
+        if isinstance(content, str):
+            try:
+                content_obj = json.loads(content)
+                content_text = content_obj.get("text", "")
+            except json.JSONDecodeError:
+                content_text = content
+        else:
+            content_text = ""
+
+        if bot_open_id:
+            return bot_open_id in content_text
+        return "<at " in content_text
     if not bot_open_id:
         return True
     for m in mentions:
@@ -159,6 +172,9 @@ async def feishu_event(req: Request) -> Dict[str, Any]:
     # 飞书回调校验（URL verification）
     if "challenge" in payload:
         return {"challenge": payload.get("challenge")}
+
+    if os.getenv("FEISHU_DEBUG_LOG_PAYLOAD") == "1":
+        print("feishu_event_payload:", json.dumps(payload, ensure_ascii=False))
 
     event = payload.get("event", {})
     if not isinstance(event, dict):
