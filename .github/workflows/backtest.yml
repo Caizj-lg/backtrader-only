@@ -27,6 +27,10 @@ on:
         description: "最大持有天数（例如 10）"
         required: true
         default: "10"
+      cash:
+        description: "初始资金（例如 100000）"
+        required: true
+        default: "100000"
       datasource:
         description: "auto/tushare/akshare"
         required: true
@@ -70,6 +74,7 @@ jobs:
             --take_profit "${{ inputs.take_profit }}" \
             --stop_loss "${{ inputs.stop_loss }}" \
             --max_hold_days "${{ inputs.max_hold_days }}" \
+            --cash "${{ inputs.cash }}" \
             --datasource "${{ inputs.datasource }}" \
             --report_path "report.json"
 

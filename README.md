@@ -32,6 +32,7 @@ python -m backtest.run_backtest \
   --take_profit 0.03 \
   --stop_loss -0.05 \
   --max_hold_days 10 \
+  --cash 100000 \
   --datasource auto
 ```
 

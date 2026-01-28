@@ -78,6 +78,7 @@ def _validate_inputs(form: Dict[str, Any]) -> Dict[str, str]:
     take_profit_raw = str(form.get("take_profit", "0.03")).strip()
     stop_loss_raw = str(form.get("stop_loss", "-0.05")).strip()
     max_hold_days_raw = str(form.get("max_hold_days", "10")).strip()
+    cash_raw = str(form.get("cash", "100000")).strip()
 
     if len(symbol) != 6 or not symbol.isdigit():
         raise ValueError("symbol 必须为 6 位数字")
@@ -90,6 +91,7 @@ def _validate_inputs(form: Dict[str, Any]) -> Dict[str, str]:
     take_profit = _parse_float(take_profit_raw, "take_profit")
     stop_loss = _parse_float(stop_loss_raw, "stop_loss")
     max_hold_days = _parse_int(max_hold_days_raw, "max_hold_days")
+    cash = _parse_float(cash_raw, "cash")
 
     if take_profit <= 0:
         raise ValueError("take_profit 必须 > 0")
@@ -97,6 +99,8 @@ def _validate_inputs(form: Dict[str, Any]) -> Dict[str, str]:
         raise ValueError("stop_loss 必须 < 0")
     if not (1 <= max_hold_days <= 200):
         raise ValueError("max_hold_days 必须在 1~200")
+    if cash <= 0:
+        raise ValueError("cash 必须 > 0")
 
     # MVP：仅基础校验，详细校验留 TODO
     inputs: Dict[str, str] = {
@@ -106,6 +110,7 @@ def _validate_inputs(form: Dict[str, Any]) -> Dict[str, str]:
         "take_profit": f"{take_profit}",
         "stop_loss": f"{stop_loss}",
         "max_hold_days": f"{max_hold_days}",
+        "cash": f"{cash}",
         "datasource": "auto",
     }
     return inputs

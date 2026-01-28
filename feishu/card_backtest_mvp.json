@@ -99,6 +99,19 @@
             }
           },
           {
+            "tag": "input",
+            "name": "cash",
+            "label": {
+              "tag": "plain_text",
+              "content": "cash（默认100000）"
+            },
+            "initial_value": "100000",
+            "placeholder": {
+              "tag": "plain_text",
+              "content": "例如：100000"
+            }
+          },
+          {
             "tag": "button",
             "text": {
               "tag": "plain_text",
@@ -114,4 +127,3 @@
     ]
   }
 }
-

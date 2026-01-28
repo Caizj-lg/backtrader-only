@@ -25,6 +25,7 @@ class BacktestInputs:
     take_profit: float
     stop_loss: float
     max_hold_days: int
+    cash: float
     datasource: DataSource
 
 
@@ -46,18 +47,21 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--take_profit", type=float, default=0.03)
     p.add_argument("--stop_loss", type=float, default=-0.05)
     p.add_argument("--max_hold_days", type=int, default=10)
+    p.add_argument("--cash", type=float, default=100000.0)
     p.add_argument("--datasource", choices=["auto", "tushare", "akshare"], default="auto")
     p.add_argument("--report_path", default="report.json")
     return p.parse_args()
 
 
-def _validate_params(take_profit: float, stop_loss: float, max_hold_days: int) -> None:
+def _validate_params(take_profit: float, stop_loss: float, max_hold_days: int, cash: float) -> None:
     if take_profit <= 0:
         raise ValueError("take_profit 必须 > 0")
     if stop_loss >= 0:
         raise ValueError("stop_loss 必须 < 0")
     if not (1 <= max_hold_days <= 200):
         raise ValueError("max_hold_days 必须在 1~200")
+    if cash <= 0:
+        raise ValueError("cash 必须 > 0")
 
 
 def _calc_max_drawdown(equity: list[float]) -> float:
@@ -79,7 +83,8 @@ def _format_summary(inputs: BacktestInputs, metrics: BacktestMetrics, datasource
         f"回测完成（MVP）\n"
         f"标的：{inputs.symbol}\n"
         f"区间：{inputs.start_date} ~ {inputs.end_date}\n"
-        f"参数：TP={inputs.take_profit:.2%} SL={inputs.stop_loss:.2%} Hold={inputs.max_hold_days}\n"
+        f"参数：TP={inputs.take_profit:.2%} SL={inputs.stop_loss:.2%} Hold={inputs.max_hold_days} "
+        f"Cash={inputs.cash:.0f}\n"
         f"数据源：{datasource_used}\n"
         f"结果：总收益={metrics.total_return:.2%} 最大回撤={metrics.max_drawdown:.2%} "
         f"胜率={metrics.win_rate:.2%} 交易次数={metrics.trades} "
@@ -158,7 +163,7 @@ def run_backtest(inputs: BacktestInputs, cfg: BacktestConfig) -> tuple[dict[str,
 
 def main() -> None:
     args = _parse_args()
-    _validate_params(args.take_profit, args.stop_loss, args.max_hold_days)
+    _validate_params(args.take_profit, args.stop_loss, args.max_hold_days, args.cash)
 
     inputs = BacktestInputs(
         symbol=args.symbol,
@@ -167,10 +172,11 @@ def main() -> None:
         take_profit=float(args.take_profit),
         stop_loss=float(args.stop_loss),
         max_hold_days=int(args.max_hold_days),
+        cash=float(args.cash),
         datasource=args.datasource,  # type: ignore[assignment]
     )
 
-    cfg = BacktestConfig()
+    cfg = BacktestConfig(cash=float(args.cash))
     try:
         report, datasource_used = run_backtest(inputs, cfg)
         Path(args.report_path).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -186,4 +192,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
