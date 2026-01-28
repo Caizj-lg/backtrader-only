@@ -1,0 +1,9 @@
+backtrader==1.9.78.123
+pandas==2.2.3
+numpy==2.1.3
+tushare==1.4.20
+akshare==1.14.86
+requests==2.32.3
+fastapi==0.115.6
+uvicorn==0.34.0
+

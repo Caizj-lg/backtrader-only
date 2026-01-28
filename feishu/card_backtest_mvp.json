@@ -1,0 +1,117 @@
+{
+  "schema": "2.0",
+  "config": {
+    "wide_screen_mode": true
+  },
+  "header": {
+    "title": {
+      "tag": "plain_text",
+      "content": "A股回测 MVP"
+    },
+    "template": "blue"
+  },
+  "body": {
+    "elements": [
+      {
+        "tag": "markdown",
+        "content": "**填写参数并提交**（单标的/日线/TP+SL+Hold）"
+      },
+      {
+        "tag": "form",
+        "name": "backtest_form",
+        "elements": [
+          {
+            "tag": "input",
+            "name": "symbol",
+            "label": {
+              "tag": "plain_text",
+              "content": "symbol（6位）"
+            },
+            "placeholder": {
+              "tag": "plain_text",
+              "content": "例如：600519"
+            },
+            "required": true
+          },
+          {
+            "tag": "input",
+            "name": "start_date",
+            "label": {
+              "tag": "plain_text",
+              "content": "start_date"
+            },
+            "placeholder": {
+              "tag": "plain_text",
+              "content": "YYYY-MM-DD"
+            },
+            "required": true
+          },
+          {
+            "tag": "input",
+            "name": "end_date",
+            "label": {
+              "tag": "plain_text",
+              "content": "end_date"
+            },
+            "placeholder": {
+              "tag": "plain_text",
+              "content": "YYYY-MM-DD"
+            },
+            "required": true
+          },
+          {
+            "tag": "input",
+            "name": "take_profit",
+            "label": {
+              "tag": "plain_text",
+              "content": "take_profit（默认0.03）"
+            },
+            "initial_value": "0.03",
+            "placeholder": {
+              "tag": "plain_text",
+              "content": "例如：0.03"
+            }
+          },
+          {
+            "tag": "input",
+            "name": "stop_loss",
+            "label": {
+              "tag": "plain_text",
+              "content": "stop_loss（默认-0.05）"
+            },
+            "initial_value": "-0.05",
+            "placeholder": {
+              "tag": "plain_text",
+              "content": "例如：-0.05"
+            }
+          },
+          {
+            "tag": "input",
+            "name": "max_hold_days",
+            "label": {
+              "tag": "plain_text",
+              "content": "max_hold_days（默认10）"
+            },
+            "initial_value": "10",
+            "placeholder": {
+              "tag": "plain_text",
+              "content": "例如：10"
+            }
+          },
+          {
+            "tag": "button",
+            "text": {
+              "tag": "plain_text",
+              "content": "提交回测"
+            },
+            "type": "primary",
+            "value": {
+              "action": "submit_backtest_mvp"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+
