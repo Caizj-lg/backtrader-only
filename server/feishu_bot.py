@@ -56,7 +56,12 @@ def send_interactive_card(chat_id: str, card: Dict[str, Any]) -> None:
         "content": json.dumps(card, ensure_ascii=False),
     }
     resp = requests.post(url, headers=headers, json=payload, timeout=15)
-    resp.raise_for_status()
-    data = resp.json()
+    try:
+        data = resp.json()
+    except ValueError:
+        data = {"raw": resp.text}
+
+    if resp.status_code >= 400:
+        raise RuntimeError(f"发送卡片失败: status={resp.status_code} data={data}")
     if data.get("code") != 0:
         raise RuntimeError(f"发送卡片失败: {data}")

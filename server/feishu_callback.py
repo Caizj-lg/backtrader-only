@@ -203,4 +203,5 @@ async def feishu_event(req: Request) -> Dict[str, Any]:
         send_interactive_card(chat_id, card)
         return {"ok": True}
     except Exception as ex:  # noqa: BLE001 - MVP: 避免重试风暴
+        print(f"send_card_error: {type(ex).__name__}: {ex}")
         return {"ok": False, "msg": f"发送卡片失败：{type(ex).__name__}: {ex}"}
