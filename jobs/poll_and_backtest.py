@@ -3,11 +3,17 @@ from __future__ import annotations
 import json
 import os
 import sys
+from pathlib import Path
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import requests
+
+# Ensure repo root is on sys.path when running as a script in Actions
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from backtest.config import BacktestConfig
 from backtest.feishu import send_feishu_text

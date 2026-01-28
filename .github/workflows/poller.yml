@@ -36,4 +36,4 @@ jobs:
 
       - name: Poll and backtest
         run: |
-          python jobs/poll_and_backtest.py
+          PYTHONPATH=. python jobs/poll_and_backtest.py
