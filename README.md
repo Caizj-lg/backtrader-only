@@ -75,6 +75,24 @@ uvicorn server.feishu_callback:app --host 0.0.0.0 --port 8000
    - 在群里发送 `feishu/card_backtest_mvp.json` 对应的卡片，提交表单
    - 预期：触发 Actions → 回测完成 → 群里收到摘要
 
+### 飞书 @机器人 自动发卡片（用户友好入口）
+目标：用户在群里 `@机器人`，机器人自动发送回测表单卡片。
+
+1) 飞书开放平台设置（事件订阅）
+   - 回调 URL：`POST https://<your-domain>/feishu/event`
+   - 订阅事件：消息（message）
+   - 开启并发布应用
+
+2) 运行环境变量（新增）
+   - `FEISHU_APP_ID`
+   - `FEISHU_APP_SECRET`
+   - `FEISHU_BOT_OPEN_ID`（可选：设置后只响应提到该机器人）
+
+3) 使用方式
+   - 群里 `@机器人` 发送任意内容
+   - 机器人返回 `feishu/card_backtest_mvp.json` 表单卡片
+   - 用户提交表单 → 触发 Actions → 回传结果
+
 ### 安全提示（MVP 之后补）
 - 飞书回调鉴权/签名校验（TODO）
 - GitHub Token 权限最小化（仅 workflow dispatch）

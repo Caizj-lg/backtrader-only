@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime
+import os
 from typing import Any, Dict, Optional
 
 from fastapi import FastAPI, Request
 
 from server.github_dispatch import dispatch_backtest_workflow
+from server.feishu_bot import load_card_json, send_interactive_card
 
 app = FastAPI()
 
@@ -131,3 +133,56 @@ async def feishu_card_callback(req: Request) -> Dict[str, Any]:
         return {"ok": True, "msg": "已触发回测"}
     except Exception as ex:  # noqa: BLE001 - MVP：优先回 200 避免飞书重试
         return {"ok": False, "msg": f"触发失败：{type(ex).__name__}: {ex}"}
+
+
+def _mentioned_bot(payload: Dict[str, Any]) -> bool:
+    event = payload.get("event", {})
+    message = event.get("message", {}) if isinstance(event, dict) else {}
+    mentions = message.get("mentions", []) if isinstance(message, dict) else []
+
+    bot_open_id = os.getenv("FEISHU_BOT_OPEN_ID")
+    if not mentions:
+        return False
+    if not bot_open_id:
+        return True
+    for m in mentions:
+        mid = m.get("id", {}) if isinstance(m, dict) else {}
+        if mid.get("open_id") == bot_open_id:
+            return True
+    return False
+
+
+@app.post("/feishu/event")
+async def feishu_event(req: Request) -> Dict[str, Any]:
+    payload = await req.json()
+
+    # 飞书回调校验（URL verification）
+    if "challenge" in payload:
+        return {"challenge": payload.get("challenge")}
+
+    event = payload.get("event", {})
+    if not isinstance(event, dict):
+        return {"ok": True}
+
+    # 忽略机器人自己发送的消息，避免死循环
+    sender = event.get("sender", {})
+    if isinstance(sender, dict) and sender.get("sender_type") == "app":
+        return {"ok": True}
+
+    if event.get("type") != "message":
+        return {"ok": True}
+
+    if not _mentioned_bot(payload):
+        return {"ok": True}
+
+    message = event.get("message", {})
+    chat_id = message.get("chat_id") if isinstance(message, dict) else None
+    if not chat_id:
+        return {"ok": True}
+
+    try:
+        card = load_card_json()
+        send_interactive_card(chat_id, card)
+        return {"ok": True}
+    except Exception as ex:  # noqa: BLE001 - MVP: 避免重试风暴
+        return {"ok": False, "msg": f"发送卡片失败：{type(ex).__name__}: {ex}"}
