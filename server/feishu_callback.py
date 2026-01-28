@@ -185,7 +185,9 @@ async def feishu_event(req: Request) -> Dict[str, Any]:
     if isinstance(sender, dict) and sender.get("sender_type") == "app":
         return {"ok": True}
 
-    if event.get("type") != "message":
+    header = payload.get("header", {})
+    event_type = header.get("event_type") if isinstance(header, dict) else None
+    if event.get("type") != "message" and event_type != "im.message.receive_v1":
         return {"ok": True}
 
     if not _mentioned_bot(payload):
