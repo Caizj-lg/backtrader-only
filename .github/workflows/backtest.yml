@@ -31,10 +31,18 @@ on:
         description: "初始资金（例如 100000）"
         required: true
         default: "100000"
+      run_note:
+        description: "备注（可选）"
+        required: false
+        default: ""
+      run_id:
+        description: "标识（可选）"
+        required: false
+        default: ""
       datasource:
         description: "auto/tushare/akshare"
         required: true
-        default: "auto"
+        default: "tushare"
 
 jobs:
   backtest:
@@ -42,6 +50,7 @@ jobs:
     env:
       TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
       FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -75,6 +84,8 @@ jobs:
             --stop_loss "${{ inputs.stop_loss }}" \
             --max_hold_days "${{ inputs.max_hold_days }}" \
             --cash "${{ inputs.cash }}" \
+            --run_note "${{ inputs.run_note }}" \
+            --run_id "${{ inputs.run_id }}" \
             --datasource "${{ inputs.datasource }}" \
             --report_path "report.json"
 

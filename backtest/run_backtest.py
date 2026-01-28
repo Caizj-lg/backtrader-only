@@ -26,6 +26,8 @@ class BacktestInputs:
     stop_loss: float
     max_hold_days: int
     cash: float
+    run_note: str
+    run_id: str
     datasource: DataSource
 
 
@@ -48,12 +50,21 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--stop_loss", type=float, default=-0.05)
     p.add_argument("--max_hold_days", type=int, default=10)
     p.add_argument("--cash", type=float, default=100000.0)
+    p.add_argument("--run_note", default="")
+    p.add_argument("--run_id", default="")
     p.add_argument("--datasource", choices=["auto", "tushare", "akshare"], default="auto")
     p.add_argument("--report_path", default="report.json")
     return p.parse_args()
 
 
-def _validate_params(take_profit: float, stop_loss: float, max_hold_days: int, cash: float) -> None:
+def _validate_params(
+    take_profit: float,
+    stop_loss: float,
+    max_hold_days: int,
+    cash: float,
+    start_date: str,
+    end_date: str,
+) -> None:
     if take_profit <= 0:
         raise ValueError("take_profit 必须 > 0")
     if stop_loss >= 0:
@@ -62,6 +73,13 @@ def _validate_params(take_profit: float, stop_loss: float, max_hold_days: int, c
         raise ValueError("max_hold_days 必须在 1~200")
     if cash <= 0:
         raise ValueError("cash 必须 > 0")
+    try:
+        s = datetime.strptime(start_date, "%Y-%m-%d").date()
+        e = datetime.strptime(end_date, "%Y-%m-%d").date()
+    except ValueError as ex:
+        raise ValueError("日期格式必须为 YYYY-MM-DD") from ex
+    if s >= e:
+        raise ValueError("start_date 必须小于 end_date")
 
 
 def _calc_max_drawdown(equity: list[float]) -> float:
@@ -79,6 +97,17 @@ def _calc_max_drawdown(equity: list[float]) -> float:
 
 
 def _format_summary(inputs: BacktestInputs, metrics: BacktestMetrics, datasource_used: str) -> str:
+    run_url = os.getenv("RUN_URL", "")
+    run_meta = ""
+    if inputs.run_note or inputs.run_id or run_url:
+        parts = []
+        if inputs.run_id:
+            parts.append(f"RunID={inputs.run_id}")
+        if inputs.run_note:
+            parts.append(f"Note={inputs.run_note}")
+        if run_url:
+            parts.append(f"URL={run_url}")
+        run_meta = " | " + " ".join(parts)
     return (
         f"回测完成（MVP）\n"
         f"标的：{inputs.symbol}\n"
@@ -89,6 +118,7 @@ def _format_summary(inputs: BacktestInputs, metrics: BacktestMetrics, datasource
         f"结果：总收益={metrics.total_return:.2%} 最大回撤={metrics.max_drawdown:.2%} "
         f"胜率={metrics.win_rate:.2%} 交易次数={metrics.trades} "
         f"资金：{metrics.start_cash:.0f} -> {metrics.end_value:.0f}"
+        f"{run_meta}"
     )
 
 
@@ -157,13 +187,14 @@ def run_backtest(inputs: BacktestInputs, cfg: BacktestConfig) -> tuple[dict[str,
         "metrics": asdict(metrics),
         "trades": trades,
         "equity_curve": equity_curve,
+        "run_url": os.getenv("RUN_URL", ""),
     }
     return report, bars.datasource_used
 
 
 def main() -> None:
     args = _parse_args()
-    _validate_params(args.take_profit, args.stop_loss, args.max_hold_days, args.cash)
+    _validate_params(args.take_profit, args.stop_loss, args.max_hold_days, args.cash, args.start_date, args.end_date)
 
     inputs = BacktestInputs(
         symbol=args.symbol,
@@ -173,6 +204,8 @@ def main() -> None:
         stop_loss=float(args.stop_loss),
         max_hold_days=int(args.max_hold_days),
         cash=float(args.cash),
+        run_note=str(args.run_note),
+        run_id=str(args.run_id),
         datasource=args.datasource,  # type: ignore[assignment]
     )
 
